@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var counter: TextView
     private lateinit var incrementButton: Button
     private lateinit var decrementButton: Button
-    private val subscription: Subscription<MainState, CounterAction> = { state, dispatch ->
+    private val subscription: Subscription<MainState, CounterAction> = { state, _ ->
         counter.text = "Count: ${state.count}"
     }
 
