@@ -16,7 +16,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var decrementButton: Button
     private val subscription: Subscription<MainState, CounterAction> = { state, dispatch ->
         counter.text = "Count: ${state.count}"
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
