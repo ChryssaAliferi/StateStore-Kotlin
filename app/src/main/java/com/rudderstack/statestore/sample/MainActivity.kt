@@ -6,15 +6,18 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.rudderstack.statestore.R
 import com.rudderstack.statestore.statemanagement.SingleThreadStore
-import com.rudderstack.statestore.statemanagement.Unsubscribe
+import com.rudderstack.statestore.statemanagement.Subscription
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var storeUnsubscriber: Unsubscribe
     private lateinit var store: SingleThreadStore<MainState, CounterAction>
     private lateinit var counter: TextView
     private lateinit var incrementButton: Button
     private lateinit var decrementButton: Button
+    private val subscription: Subscription<MainState, CounterAction> = { state, dispatch ->
+        counter.text = "Count: ${state.count}"
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,34 +27,27 @@ class MainActivity : AppCompatActivity() {
         decrementButton = findViewById(R.id.decrementButton)
 
         store = SingleThreadStore(
-            state = MainState(count = 0),
+            initialState = MainState(count = 0),
             reducer = MainReducer(),
             middleware = listOf(LoggingMiddleware())
         )
-    }
+        incrementButton.setOnClickListener {
+            store.dispatch(CounterAction.IncrementAction)
+        }
 
-    override fun onResume() {
-        super.onResume()
-
-        storeUnsubscriber = store.subscribe { currentState, dispatch ->
-            counter.text = "Count: ${currentState.count}"
-
-            incrementButton.setOnClickListener {
-                dispatch(CounterAction.IncrementAction)
-            }
-
-            decrementButton.setOnClickListener {
-                dispatch(CounterAction.DecrementAction)
-            }
+        decrementButton.setOnClickListener {
+            store.dispatch(CounterAction.DecrementAction)
         }
     }
 
-    private fun mainStateUpdate(mainState: MainState) {
-        counter.text = "Count: ${mainState.count}"
+
+    override fun onResume() {
+        super.onResume()
+        store.subscribe(subscription)
     }
 
     override fun onPause() {
-        storeUnsubscriber.invoke()
+        store.unsubscribe(subscription)
         super.onPause()
     }
 }
